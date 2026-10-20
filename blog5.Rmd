@@ -1,0 +1,43 @@
+---
+title: "blog5"
+output: html_document
+---
+## Questions and motivation
+Geographic population distribution is the core tpoic about the data analasis of space. Normally, the population from different counties are not equally distributed, but tend to gather in specific urban areas, while in the sub urban areas the population is usually scarce. Identifying this kind of spatial pattern can help us explain the regional differences of urbanization and differences in geographic development. This article research on the population distribution of Pennsylvania at the county level in 2020. The core research question is: does there exist obvious characteristics of spatial agglomeration in the population of Pennsylvania, what kind of features of geographic distribution can we observe from this spatial data.
+
+## Data and Research Methods
+This analysis uses the official 2020 Decennial Census spatial and demographic data from the United States Census Bureau. The dataset contains the Pennsylvania county boundary shapefile data and county total population statistics. In order to improve the effect of visualization, this research takes natural log for the data of the original population. The original data of the county population have severely right skewness, few urban counties have extremely high value of population, and would hide the most visually differences among rural counties. Taking log balance the range of the data, which makes the subtle spatial differences in population observable. 
+
+## Spatial Visualization and Interpretation
+This choropleth map shows the population data of each counties in Pennsylvania after taking logs. The color gradients represents the scale of the population. The legend on the right of the graph shows that the lighter blue represents a larger population while a darker blue represents counties with a smaller size of population.
+The map clearly indicates the significant model of spatial agglomeration, the population is not randomly distributed. The southeastern part of Pennsylvania appears the lightest block, which means that these area counties have the highest log population and overall population in the whole state. In contrast, the counties in the North and West part regions are dark blue, which are rural counties with a small population scale. Therefore, the population gathers in the Southeastern part, while the North and West part have a relatively lower residents.
+This spatial patterns shows obvious urban and rural segmentation. Large urban counties with strong economic opportunities attract more residents, while the inland regions with rural counties have a lower capacity of population, and have a relatively lower number of residents.
+
+## Conclusion
+In a word, the population of all counties in Pennsylvania in 2020 shows highly uneven spatial distribution, which have the significant characteristic of geographic agglomeration. The highest population gathers in the counties in the southeastern areas, while the counties in the North and the West regions have smaller population size. This kind of spatial feature directly reflects the uneven level of the urbanization in the state and the regional development. Based on the log of the spatial visualization, we successfully reveals the unobserved regional differences of the original data, and shows the value of GIS spatial analysis in the research of population.
+```{r setup, include=FALSE}
+library(tidyverse)
+library(tigris)
+library(sf)
+options(tigris_use_cache = TRUE)
+```
+```{r}
+PA_2020population<-read.csv("C:/Users/david/Desktop/ACSDT5Y2020.B01003-Data.csv")
+PA_2020population<-PA_2020population %>% mutate(short_id = str_sub(GEO_ID, 10))
+PA_counties<-counties(state = "PA", year = 2020, cb = TRUE)
+PA_2020 <- left_join(PA_2020population, PA_counties, by = c("short_id"="GEOID"))
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+Population_clean <- PA_2020 |>
+  mutate(Population_num = as.numeric(B01003_001E))
+
+map_join <- left_join(PA_counties, Population_clean, by = "AFFGEOID")
+
+ggplot(map_join)+
+  geom_sf(aes(fill = log(Population_num)))+
+  labs(fill = "Log(Population)")
+```
+
